@@ -1,77 +1,58 @@
-﻿using System;
-using System.Linq;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Xunit;
 
 namespace Battleships.Test
 {
     public class GameTest
     {
-        private string[] oneShip = new string[] { "3:2,3:5" };
-        private string[] oneShipGuesses = new string[] { "3:2", "3:3", "3:4", "3:5" };
-
-        private string[] multipleShips = new string[] { "3:2,3:5", "5:2,5:3", "6:6,8:6" };
-        private string[] multipleShipsGuesses = new string[] { 
-                        "3:2", "3:3", "3:4", "3:5", // first ship
-                        "5:2", "5:3", // second ship
-                        "6:6", "7:6", "8:6" // third ship
-        };
-        private string[] multipleShipsGuessesPartial = new string[] {
-            "3:2", "3:3", "3:4", // first ship
-            "5:2", // second ship
-            "6:6", "7:6" // third ship
-        };
-        private string[] invalidCoordinatesInputFormat = new string[] { "3,2", "32" };
-
-        private string[] outofBoundsCoordinates = new string[] { "-3:12" };
-
-        private string[] invalidShipShape = new string[] { "3:2,4:5" };
-        private string[] invalidShipSize = new string[] { "1:1,6:6", "1:1,1:1" };
-
         [Fact]
         public void TestPlaySunk()
         {
-            Game.Play(oneShip, oneShipGuesses).Should().Be(1);
+            Game.Play(PayloadTestData.OneShip, PayloadTestData.OneShipGuesses)
+                .Should().Be(1);
         }
 
         [Fact]
         public void TestPlaySunkMultiple()
         {
 
-            Game.Play(multipleShips, multipleShipsGuesses).Should().Be(3);
+            Game.Play(PayloadTestData.MultipleShips, PayloadTestData.MultipleShipsGuesses)
+                .Should().Be(PayloadTestData.MultipleShips.Length);
         }
 
         [Fact]
         public void TestPlayNoSunkPartialHits()
         {
-            Game.Play(multipleShips, multipleShipsGuessesPartial).Should().Be(0);
+            Game.Play(PayloadTestData.MultipleShips, PayloadTestData.MultipleShipsGuessesPartial)
+                .Should().Be(0);
         }
 
+
         [Fact]
-        public void TestInvalidGuessFormat()
+        public void TestOutOfBoundsGuesses()
         {
-            foreach (var i in invalidCoordinatesInputFormat)
+            foreach (var i in PayloadTestData.OutofBoundsCoordinates)
             {
-                Assert.Throws<InvalidCoordinateFormatException>(() => Game.Play(multipleShips, new string[] {i}));
+                Assert.Throws<CoordinateOutOfBoardException>(() =>
+                    Game.Play(PayloadTestData.MultipleShips, new string[] { i }));
             }
         }
 
         [Fact]
-        public void TestInvalidShipSize()
+        public void TestOutOfBoundsShips()
         {
-            foreach (var i in invalidShipSize)
+            foreach (var i in PayloadTestData.InvalidShipPositions)
             {
-                Assert.Throws<InvalidShipInputException>(() => Game.Play(new string[] { i }, multipleShipsGuesses));
+                Assert.Throws<ShipOutOfBoundsException>(() =>
+                    Game.Play(new string[] { i }, PayloadTestData.MultipleShipsGuesses));
             }
         }
 
         [Fact]
-        public void TestInvalidShipShape()
+        public void TestShipsIntersecting()
         {
-            foreach (var i in invalidShipShape)
-            {
-                Assert.Throws<InvalidShipInputException>(() => Game.Play(new string[] { i }, multipleShipsGuesses));
-            }
+            Assert.Throws<ShipsIntersectingException>(() =>
+                Game.Play(PayloadTestData.IntersectingShips, PayloadTestData.MultipleShipsGuesses));
         }
     }
 }

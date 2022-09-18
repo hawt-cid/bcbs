@@ -47,6 +47,7 @@
     <Compile Include="GameObjects\Coordinate.cs" />
     <Compile Include="GameObjects\Ship.cs" />
     <Compile Include="GameObjects\ShipMass.cs" />
+    <Compile Include="Exceptions\ShipsIntersectingException.cs" />
     <Compile Include="GameObjects\SquareBoard.cs" />
     <Compile Include="Exceptions\InvalidCoordinateFormatException.cs" />
     <Compile Include="Exceptions\InvalidShipInputException.cs" />

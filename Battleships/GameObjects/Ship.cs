@@ -6,15 +6,11 @@ namespace Battleships
 {
     public class Ship
     {
-        public Coordinate ShipStart { get; }
-        public Coordinate ShipEnd { get; }
-
         private readonly IReadOnlyCollection<ShipMass> _shipMass;
+
         public Ship(Coordinate from, Coordinate to)
         {
-            ShipStart = from;
-            ShipEnd = to;
-            _shipMass = createShipMass(from, to);
+            _shipMass = shipMassFromEdges(from, to);
         }
 
         public bool IsSunken()
@@ -30,7 +26,12 @@ namespace Battleships
             }
         }
 
-        private static IReadOnlyCollection<ShipMass> createShipMass(Coordinate from, Coordinate to)
+        public IReadOnlyCollection<Coordinate> GetMassCoordinates()
+        {
+            return _shipMass.Select(sm => sm.Coordinate).ToArray();
+        }
+
+        private static IReadOnlyCollection<ShipMass> shipMassFromEdges(Coordinate from, Coordinate to)
         {
             List<ShipMass> mass = new List<ShipMass>();
 

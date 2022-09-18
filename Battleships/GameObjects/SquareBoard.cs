@@ -1,29 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace Battleships
 {
     internal class SquareBoard
     {
-        private const int BOARD_SQUARE_WIDTH = 10;
-
         private readonly IReadOnlyCollection<Ship> _ships;
+        private readonly int _squareWidth;
         
-        internal SquareBoard(IReadOnlyCollection<Ship> ships)
+        public SquareBoard(int squareBoardWidth, IReadOnlyCollection<Ship> ships)
         {
-            validateShipsOnBoard(ships);
+            _squareWidth = squareBoardWidth;
+            ensureValidShipsOnBoard(ships);
             this._ships = ships;
         }
 
-        internal int CountSunkenShips()
+        public int CountSunkenShips()
         {
             return _ships.Count(s => s.IsSunken());
         }
 
-        internal void ShootAt(IReadOnlyCollection<Coordinate> guesses)
+        public void ShootAt(IReadOnlyCollection<Coordinate> guesses)
         {
-            validateGuesses(guesses);
+            ensureValidGuesses(guesses);
+            
             foreach (var s in _ships)
             {
                 foreach (var g in guesses)
@@ -33,35 +33,44 @@ namespace Battleships
             }
         }
 
-        private static void validateShipsOnBoard(IReadOnlyCollection<Ship> ships)
+        private void ensureValidShipsOnBoard(IReadOnlyCollection<Ship> ships)
         {
-            var misplacedShips = ships.Where(s => !IsInsideBoard((Ship)s)).ToArray();
-            if (misplacedShips.Any())
+            var shipsOnBoard = ships.Select(s => new { IsOnBoard = isInsideBoard(s), Mass = s.GetMassCoordinates() }).ToArray();
+
+            if (shipsOnBoard.Any(s => !s.IsOnBoard))
             {
-                throw new ShipOutOfBoundsException(misplacedShips);
+                throw new ShipOutOfBoundsException();
+            }
+
+            var intersectingMass = shipsOnBoard.SelectMany(s => s.Mass)
+                .GroupBy(s => s).Where(g => g.Count() > 1);
+
+            if (intersectingMass.Any())
+            {
+                throw new ShipsIntersectingException(ships);
             }
         }
 
-        private static bool IsInsideBoard(Ship ship)
+        private bool isInsideBoard(Ship ship)
         {
-            return
-                Math.Max(ship.ShipStart.Row, ship.ShipEnd.Row) < BOARD_SQUARE_WIDTH &&
-                Math.Min(ship.ShipStart.Row, ship.ShipEnd.Row) >= 0 &&
-                Math.Max(ship.ShipStart.Column, ship.ShipEnd.Column) < BOARD_SQUARE_WIDTH &&
-                Math.Min(ship.ShipStart.Column, ship.ShipEnd.Column) >= 0;
+            var allMass = ship.GetMassCoordinates();
+
+            return allMass.All(
+                    m => m.Row >= 0 && m.Row < _squareWidth && 
+                    m.Column >= 0 && m.Column < _squareWidth );
         }
 
-        private static bool IsInsideBoard(Coordinate coordinate)
+        private bool isInsideBoard(Coordinate coordinate)
         {
-            return coordinate.Row >= 0 && coordinate.Row < BOARD_SQUARE_WIDTH &&
-                   coordinate.Column >= 0 && coordinate.Column < BOARD_SQUARE_WIDTH;
+            return coordinate.Row >= 0 && coordinate.Row < _squareWidth &&
+                   coordinate.Column >= 0 && coordinate.Column < _squareWidth;
         }
 
-        private void validateGuesses(IReadOnlyCollection<Coordinate> guesses)
+        private void ensureValidGuesses(IReadOnlyCollection<Coordinate> guesses)
         {
             foreach (var g in guesses)
             {
-                if (!IsInsideBoard(g))
+                if (!isInsideBoard(g))
                 {
                     throw new CoordinateOutOfBoardException(g);
                 }

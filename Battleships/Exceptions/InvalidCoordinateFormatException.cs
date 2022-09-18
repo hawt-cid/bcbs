@@ -4,7 +4,7 @@ namespace Battleships
 {
     public class InvalidCoordinateFormatException : Exception
     {
-        public InvalidCoordinateFormatException(ArgumentException ae): base(ae.Message, ae)
+        public InvalidCoordinateFormatException(string message): base(message)
         {
         }
     }

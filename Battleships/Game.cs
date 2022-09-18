@@ -1,9 +1,5 @@
-﻿using System;
-using System.CodeDom;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Battleships
 {
@@ -24,7 +20,7 @@ namespace Battleships
             var ships = parseShips(inputShips);
             var guesses = parseGuesses(inputGuesses);
 
-            var board = new SquareBoard(ships);
+            var board = new SquareBoard(squareBoardWidth: 10, ships);
             board.ShootAt(guesses);
 
             return board.CountSunkenShips();
@@ -32,30 +28,12 @@ namespace Battleships
 
         private static IReadOnlyCollection<Coordinate> parseGuesses(string[] guesses)
         {
-            try
-            {
-                return guesses.Select(StringParser.CoordinateFromString).ToArray();
-            }
-            catch (ArgumentException ae)
-            {
-                throw new InvalidCoordinateFormatException(ae);
-            }
+            return guesses.Select(StringParser.CoordinateFromString).ToArray();
         }
 
         private static IReadOnlyCollection<Ship> parseShips(string[] ships)
         {
-            try
-            {
-                return ships.Select(StringParser.ShipFromString).ToArray();
-            }
-            catch (InvalidCoordinateFormatException icfe)
-            {
-                throw new InvalidShipInputException(icfe);
-            }
-            catch (ArgumentException ae)
-            {
-                throw new InvalidShipInputException(ae);
-            }
+            return ships.Select(StringParser.ShipFromString).ToArray();
         }
     }
 }
