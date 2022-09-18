@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,9 +19,43 @@ namespace Battleships
         // guesses: each string represents the co-ordinate of a guess
         //   e.g. "7:0" - misses the ship above, "3:3" hits it.
         // returns: the number of ships sunk by the set of guesses
-        public static int Play(string[] ships, string[] guesses)
+        public static int Play(string[] inputShips, string[] inputGuesses)
         {
-            return 0;
+            var ships = parseShips(inputShips);
+            var guesses = parseGuesses(inputGuesses);
+
+            var board = new SquareBoard(ships);
+            board.ShootAt(guesses);
+
+            return board.CountSunkenShips();
+        }
+
+        private static IReadOnlyCollection<Coordinate> parseGuesses(string[] guesses)
+        {
+            try
+            {
+                return guesses.Select(StringParser.CoordinateFromString).ToArray();
+            }
+            catch (ArgumentException ae)
+            {
+                throw new InvalidCoordinateFormatException(ae);
+            }
+        }
+
+        private static IReadOnlyCollection<Ship> parseShips(string[] ships)
+        {
+            try
+            {
+                return ships.Select(StringParser.ShipFromString).ToArray();
+            }
+            catch (InvalidCoordinateFormatException icfe)
+            {
+                throw new InvalidShipInputException(icfe);
+            }
+            catch (ArgumentException ae)
+            {
+                throw new InvalidShipInputException(ae);
+            }
         }
     }
 }
